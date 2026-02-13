@@ -15,19 +15,14 @@ Anything already set in the process wins. Missing keys are filled by the first p
 
 ---
 
-## Primary Usage (Recommended)
+## Quickstart (Recommended)
 
-- Local dev:
-  1. Put a `.env` beside your app.
-  2. Set `VAULT_ADDR` and authenticate (`vault login`) to populate missing secrets.
-     ```shell
-     VAULT_ADDR=https://vault.byu.edu vault login -method=oidc -path=byu-sso
-     ```
-- CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider effectively becomes inert, and a missing `.env` is ignored.
-
----
-
-## Quickstart (CLI)
+Local dev:
+1. Put a `.env` file beside your app.
+2. Optionally set `VAULT_ADDR` and authenticate to backfill missing secrets from Vault:
+   ```shell
+   VAULT_ADDR=https://vault.byu.edu vault login -method=oidc -path=byu-sso
+   ```
 
 1. Install the CLI:
    ```bash
@@ -50,15 +45,10 @@ Anything already set in the process wins. Missing keys are filled by the first p
    PORT=8080
    ```
 
-Optional Vault quickstart (requires Vault access):
-
+Optional Vault check:
 ```bash
-export VAULT_ADDR="https://vault.byu.edu"
-export VAULT_TOKEN="<your-token>" # or use ~/.vault-token
 envchain -vault-path "kvv2/<service>/dev/env-vars" -- env | grep '^YOUR_KEY='
 ```
-
-If `YOUR_KEY` is unset locally, `envchain` backfills it from Vault.
 
 CLI usage:
 
@@ -73,6 +63,8 @@ Flags:
 - `-verbose`: emit debug logs detailing how each provider resolves environment variables.
 
 Environment variables such as `VAULT_ADDR`, `VAULT_TOKEN`, and `VAULT_NAMESPACE` still control Vault behaviour.
+
+CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider is inert, and a missing `.env` is ignored.
 
 ## How to Use This (Programmatic)
 
