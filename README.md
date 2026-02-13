@@ -15,7 +15,7 @@ Anything already set in the process wins. Missing keys are filled by the first p
 
 ---
 
-## Quickstart (Recommended)
+## CLI Usage
 
 Local dev:
 1. Put a `.env` file beside your app.
