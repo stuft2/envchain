@@ -4,6 +4,7 @@ import (
 	"errors"
 	"flag"
 	"fmt"
+	"io"
 	"log"
 	"os"
 	"os/exec"
@@ -19,16 +20,33 @@ func main() {
 }
 
 func run(args []string) int {
+	return runWithDeps(args, os.Stdin, os.Stdout, os.Stderr, envault.Inject, gatherProviders, defaultCommandExecutor)
+}
+
+type injectFunc func(...internal.Provider) error
+type gatherProvidersFunc func(dotenvPath, vaultPath string) []internal.Provider
+type commandExecutorFunc func(name string, args []string, stdin io.Reader, stdout, stderr io.Writer) (int, error)
+
+func runWithDeps(
+	args []string,
+	stdin io.Reader,
+	stdout io.Writer,
+	stderr io.Writer,
+	inject injectFunc,
+	gather gatherProvidersFunc,
+	executeCommand commandExecutorFunc,
+) int {
 	fs := flag.NewFlagSet("envault", flag.ContinueOnError)
-	fs.SetOutput(os.Stderr)
+	fs.SetOutput(stderr)
 
 	dotenvPath := fs.String("dotenv", ".env", "path to a dotenv file (empty to skip)")
 	vaultPath := fs.String("vault-path", "", "Vault KV v2 secret path to read (empty to skip)")
 	verbose := fs.Bool("verbose", false, "enable verbose logging")
 
 	fs.Usage = func() {
-		fmt.Fprintf(fs.Output(), "Usage: envault [flags] -- command [args...]\n\n")
-		fmt.Fprintf(fs.Output(), "Flags:\n")
+		fmt.Fprintln(fs.Output(), "Usage: envault [flags] -- command [args...]")
+		fmt.Fprintln(fs.Output())
+		fmt.Fprintln(fs.Output(), "Flags:")
 		fs.PrintDefaults()
 	}
 
@@ -46,32 +64,23 @@ func run(args []string) int {
 	}
 
 	if *verbose {
-		logger := log.New(os.Stderr, "envault: ", log.LstdFlags)
+		logger := log.New(stderr, "envault: ", log.LstdFlags)
 		internal.SetLogger(logger)
 		internal.Debugf("verbose logging enabled")
 	}
 
-	providers := gatherProviders(*dotenvPath, *vaultPath)
-	if err := envault.Inject(providers...); err != nil {
-		fmt.Fprintf(os.Stderr, "envault: %v\n", err)
+	providers := gather(*dotenvPath, *vaultPath)
+	if err := inject(providers...); err != nil {
+		fmt.Fprintf(stderr, "envault: %v\n", err)
 		return 1
 	}
 
-	cmd := exec.Command(rest[0], rest[1:]...)
-	cmd.Stdin = os.Stdin
-	cmd.Stdout = os.Stdout
-	cmd.Stderr = os.Stderr
-
-	if err := cmd.Run(); err != nil {
-		var exitErr *exec.ExitError
-		if errors.As(err, &exitErr) {
-			return exitErr.ExitCode()
-		}
-		fmt.Fprintf(os.Stderr, "envault: failed to execute %q: %v\n", rest[0], err)
+	exitCode, err := executeCommand(rest[0], rest[1:], stdin, stdout, stderr)
+	if err != nil {
+		fmt.Fprintf(stderr, "envault: failed to execute %q: %v\n", rest[0], err)
 		return 1
 	}
-
-	return 0
+	return exitCode
 }
 
 func gatherProviders(dotenvPath, vaultPath string) []internal.Provider {
@@ -83,4 +92,20 @@ func gatherProviders(dotenvPath, vaultPath string) []internal.Provider {
 		providers = append(providers, vault.NewProvider(vaultPath))
 	}
 	return providers
+}
+
+func defaultCommandExecutor(name string, args []string, stdin io.Reader, stdout, stderr io.Writer) (int, error) {
+	cmd := exec.Command(name, args...)
+	cmd.Stdin = stdin
+	cmd.Stdout = stdout
+	cmd.Stderr = stderr
+
+	if err := cmd.Run(); err != nil {
+		var exitErr *exec.ExitError
+		if errors.As(err, &exitErr) {
+			return exitErr.ExitCode(), nil
+		}
+		return 0, err
+	}
+	return 0, nil
 }

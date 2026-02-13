@@ -6,8 +6,8 @@ import (
 	"io/fs"
 	"os"
 
-	"github.com/stuft2/envault/internal"
 	"github.com/joho/godotenv"
+	"github.com/stuft2/envault/internal"
 )
 
 type Provider struct {
