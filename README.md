@@ -15,6 +15,18 @@ Anything already set in the process wins. Missing keys are filled by the first p
 
 ---
 
+## Primary Usage (Recommended)
+
+- Local dev:
+  1. Put a `.env` beside your app.
+  2. Set `VAULT_ADDR` and authenticate (`vault login`) to populate missing secrets.
+     ```shell
+     VAULT_ADDR=https://vault.byu.edu vault login -method=oidc -path=byu-sso
+     ```
+- CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider effectively becomes inert, and a missing `.env` is ignored.
+
+---
+
 ## Quickstart (CLI)
 
 1. Install the CLI:
@@ -161,17 +173,6 @@ func main() {
 	fmt.Println("Debug mode =", debug)
 }
 ```
-
----
-
-## Recommended usage
- - Local dev:
-   1. Put a `.env` beside your app
-   2. Set `VAULT_ADDR` and authenticate (`vault login`) to populate missing secrets.
-     ```shell
-     VAULT_ADDR=https://vault.byu.edu vault login -method=oidc -path=byu-sso
-     ```
- - CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider effectively becomes inert, and a missing `.env` is ignored.
 
 ## External Dependencies
 
