@@ -12,6 +12,7 @@ This document links to the per-feature specifications.
 1. [Vault Result Caching](./features/vault-result-caching.md)
 1. [Additional Providers](./features/additional-providers.md)
 1. [Key Filtering And Transform Rules](./features/key-filtering-and-transform.md)
+1. [Quickstart And Troubleshooting Docs](./features/quickstart-and-troubleshooting-docs.md)
 1. [CLI Test Coverage](./features/cli-test-coverage.md)
 1. [Continuous Integration](./features/continuous-integration.md)
 
