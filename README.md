@@ -66,6 +66,14 @@ p.Context = ctx // set deadlines, cancellation, etc.
 if err := envault.Inject(p); err != nil { /* ... */ }
 ```
 
+Or pass one shared context across all context-aware providers:
+
+```go
+if err := envault.InjectWithContext(ctx, dotenv.NewProvider(".env"), vault.NewProvider("/app/web")); err != nil {
+	// handle joined provider errors
+}
+```
+
 ### Reading Environment Variables with Defaults
 
 Instead of manually checking for missing values, use `GetEnvOrDefault`:

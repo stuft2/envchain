@@ -348,3 +348,21 @@ func TestProviderInjectInvalidJSON(t *testing.T) {
 		t.Fatalf("want decode body error, got %v", err)
 	}
 }
+
+func TestProviderInjectContextCancelled(t *testing.T) {
+	vm := newVaultSuccess(t, map[string]any{"K": "V"})
+	defer vm.Close()
+
+	p := Provider{
+		Address: vm.URL(),
+		Token:   "t",
+		Path:    "v1/kv/data/app",
+	}
+	ctx, cancel := context.WithCancel(context.Background())
+	cancel()
+
+	err := p.InjectContext(ctx)
+	if err == nil || !strings.Contains(err.Error(), "context canceled") {
+		t.Fatalf("want context canceled error, got %v", err)
+	}
+}

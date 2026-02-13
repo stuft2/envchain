@@ -64,6 +64,21 @@ func NewProvider(vaultPath string) Provider {
 }
 
 func (p Provider) Inject() error {
+	ctx := p.Context
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return p.injectContext(ctx)
+}
+
+func (p Provider) InjectContext(ctx context.Context) error {
+	if ctx == nil {
+		ctx = context.Background()
+	}
+	return p.injectContext(ctx)
+}
+
+func (p Provider) injectContext(ctx context.Context) error {
 	internal.Debugf("vault: starting injection (addr=%q, path=%q, namespace=%q)", p.Address, p.Path, p.Namespace)
 	if p.Address == "" {
 		return fmt.Errorf("vault: VAULT_ADDR is required to inject environment variables")
@@ -88,9 +103,9 @@ func (p Provider) Inject() error {
 	internal.Debugf("vault: requesting %s", fullURL)
 
 	// NewRequestWithContext fails only if the method is empty or the URL is invalid.
-	// (e.g. malformed scheme, missing scheme, bad host/port). p.Context being canceled
+	// (e.g. malformed scheme, missing scheme, bad host/port). A canceled context
 	// or a nil body will not cause an error at construction time.
-	req, _ := http.NewRequestWithContext(p.Context, http.MethodGet, fullURL, nil)
+	req, _ := http.NewRequestWithContext(ctx, http.MethodGet, fullURL, nil)
 	req.Header.Set("X-Vault-Token", p.Token)
 	if p.Namespace != "" {
 		// support vault namespacing, otherwise uses vault's default p.Namespace
@@ -141,6 +156,7 @@ func (p Provider) Inject() error {
 }
 
 var _ internal.Provider = (*Provider)(nil)
+var _ internal.ContextProvider = (*Provider)(nil)
 
 // normalizeSecretPath lets users provide a shorthand kvv2/<service>/... path and
 // ensures Vault is still queried at v1/kvv2/data/... depending on VAULT_ADDR.
