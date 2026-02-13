@@ -164,8 +164,9 @@ CI runs on push and pull request via `.github/workflows/ci.yml`.
 Run the same checks locally:
 
 ```bash
-go test ./...
-go vet ./...
+task fmt
+task lint
+task test
 ```
 
 ## Project Docs
