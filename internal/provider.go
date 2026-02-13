@@ -1,12 +1,17 @@
 package internal
 
 import (
+	"context"
 	"fmt"
 	"os"
 )
 
 type Provider interface {
 	Inject() error
+}
+
+type ContextProvider interface {
+	InjectContext(context.Context) error
 }
 
 func SetEnvMap(vars map[string]string) error {
