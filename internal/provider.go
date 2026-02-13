@@ -18,7 +18,7 @@ func SetEnvMap(vars map[string]string) error {
 		if err := os.Setenv(key, value); err != nil {
 			return fmt.Errorf("failed to set %s: %w", key, err)
 		}
-		Debugf("environment variable %s set to %v", key, value)
+		Debugf("environment variable %s set", key)
 	}
 	return nil
 }
