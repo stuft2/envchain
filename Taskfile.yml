@@ -1,5 +1,9 @@
 version: "3"
 
+env:
+  GOCACHE: "{{.TASKFILE_DIR}}/.cache/go-build"
+  GOLANGCI_LINT_CACHE: "{{.TASKFILE_DIR}}/.cache/golangci-lint"
+
 tasks:
   default:
     desc: Show available tasks
@@ -20,7 +24,7 @@ tasks:
   fmt:
     desc: Format Go source files using golangci-lint
     cmds:
-      - golangci-lint run --fix --disable-all --enable gofmt
+      - golangci-lint fmt
 
   build:
     desc: Build the envault CLI

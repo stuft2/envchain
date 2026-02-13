@@ -15,6 +15,76 @@ Anything already set in the process wins. Missing keys are filled by the first p
 
 ---
 
+## Quickstart (1 minute)
+
+1. Install the CLI:
+   ```bash
+   go install github.com/stuft2/envault/cmd/envchain@latest
+   ```
+1. Create a sample `.env`:
+   ```bash
+   cat > .env <<'EOF'
+   APP_NAME=envault-demo
+   PORT=8080
+   EOF
+   ```
+1. Run a command with backfilled env vars:
+   ```bash
+   envchain -- env | grep -E '^(APP_NAME|PORT)='
+   ```
+1. Verify output:
+   ```text
+   APP_NAME=envault-demo
+   PORT=8080
+   ```
+
+Optional Vault quickstart (requires Vault access):
+
+```bash
+export VAULT_ADDR="https://vault.byu.edu"
+export VAULT_TOKEN="<your-token>" # or use ~/.vault-token
+envchain -vault-path "kvv2/<service>/dev/env-vars" -- env | grep '^YOUR_KEY='
+```
+
+If `YOUR_KEY` is unset locally, `envchain` backfills it from Vault.
+
+## Troubleshooting
+
+Symptom: `vault: VAULT_ADDR is required to inject environment variables`  
+Cause: `-vault-path` is set, but `VAULT_ADDR` is missing.  
+Fix: export `VAULT_ADDR` (for example, `https://vault.byu.edu`) or remove `-vault-path`.
+
+Symptom: `vault: VAULT_ADDR set but no token found (VAULT_TOKEN or ~/.vault-token)`  
+Cause: Vault address is configured, but auth token is unavailable.  
+Fix: set `VAULT_TOKEN` or run `vault login` so `~/.vault-token` exists.
+
+Symptom: `vault: invalid VAULT_ADDR "...": ...`  
+Cause: `VAULT_ADDR` is malformed (missing scheme, invalid host, or invalid URL).  
+Fix: use a valid URL such as `https://vault.byu.edu` (or `https://vault.byu.edu/v1`).
+
+Symptom: `Usage: envault [flags] -- command [args...]`  
+Cause: command was not passed after `--`.  
+Fix: provide a command after separator, for example `envchain -- env`.
+
+Symptom: `envault: failed to execute "..."`  
+Cause: the command after `--` is missing from `PATH` or not executable.  
+Fix: verify the executable name and run `which <command>` to confirm availability.
+
+Symptom: expected value from `.env`/Vault is not applied  
+Cause: existing process env takes precedence over providers.  
+Fix: unset the key before running, for example:
+
+```bash
+export PORT=3000
+envchain -- env | grep '^PORT='    # PORT=3000 (existing env wins)
+unset PORT
+envchain -- env | grep '^PORT='    # PORT from .env or Vault
+```
+
+Verbose mode note: `-verbose` logs provider flow and key names, not secret values. Secret-safe diagnostics and redaction guarantees will continue to improve as diagnostics features evolve.
+
+---
+
 ## How to Use This
 
 ### Injecting Environment Variables
