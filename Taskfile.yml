@@ -1,0 +1,34 @@
+version: "3"
+
+tasks:
+  default:
+    desc: Show available tasks
+    cmds:
+      - task --list
+    silent: true
+
+  test:
+    desc: Run all Go tests
+    cmds:
+      - go test ./...
+
+  vet:
+    desc: Run go vet checks
+    cmds:
+      - go vet ./...
+
+  fmt:
+    desc: Format Go source files
+    cmds:
+      - go fmt ./...
+
+  build:
+    desc: Build the envault CLI
+    cmds:
+      - go build ./cmd/envault
+
+  ci:
+    desc: Run local checks aligned with CI
+    cmds:
+      - task: test
+      - task: vet
