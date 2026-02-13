@@ -66,7 +66,7 @@ Environment variables such as `VAULT_ADDR`, `VAULT_TOKEN`, and `VAULT_NAMESPACE`
 
 CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider is inert, and a missing `.env` is ignored.
 
-## How to Use This (Programmatic)
+## Programmatic Usage
 
 ### Injecting Environment Variables
 
