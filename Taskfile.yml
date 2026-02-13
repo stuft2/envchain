@@ -25,7 +25,7 @@ tasks:
   build:
     desc: Build the envault CLI
     cmds:
-      - go build ./cmd/envault
+      - go build ./cmd/envchain
 
   ci:
     desc: Run local checks aligned with CI

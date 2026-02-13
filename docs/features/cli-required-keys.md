@@ -20,4 +20,4 @@ Add `--required` support (repeatable or CSV list). Validate keys after injection
 - Includes tests for success and failure paths.
 
 ## Implementation Notes
-- CLI entrypoint: `/Users/stuft2/Projects/envchain/cmd/envault/main.go`
+- CLI entrypoint: `/Users/stuft2/Projects/envchain/cmd/envchain/main.go`

@@ -20,5 +20,5 @@ Support repeated `--vault-path` flags (or a deterministic list format) and apply
 - Works with current "do not overwrite set env" behavior.
 
 ## Implementation Notes
-- CLI provider assembly: `/Users/stuft2/Projects/envchain/cmd/envault/main.go`
+- CLI provider assembly: `/Users/stuft2/Projects/envchain/cmd/envchain/main.go`
 - Vault provider behavior: `/Users/stuft2/Projects/envchain/providers/vault/provider.go`

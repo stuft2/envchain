@@ -25,4 +25,4 @@ Add `--dry-run` and/or `--plan` mode that reports:
 ## Implementation Notes
 - Logging utility: `/Users/stuft2/Projects/envchain/internal/logging.go`
 - Env mutation path: `/Users/stuft2/Projects/envchain/internal/provider.go`
-- CLI flags/output: `/Users/stuft2/Projects/envchain/cmd/envault/main.go`
+- CLI flags/output: `/Users/stuft2/Projects/envchain/cmd/envchain/main.go`

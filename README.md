@@ -131,16 +131,16 @@ func main() {
 Instead of wiring `envault.Inject` into your code, you can wrap any command with the CLI:
 
 ```bash
-go run ./cmd/envault -- <command> [args...]
+go run ./cmd/envchain -- <command> [args...]
 ```
 
 Install it once and reuse it anywhere:
 
 ```bash
 # recommended
-go install ./cmd/envault
+go install ./cmd/envchain
 # or without cloning the repo
-go install github.com/stuft2/envault/cmd/envault@latest
+go install github.com/stuft2/envault/cmd/envchain@latest
 ```
 
 Flags:

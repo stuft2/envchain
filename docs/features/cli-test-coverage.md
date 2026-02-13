@@ -2,7 +2,7 @@
 
 ## Goal
 
-Validate `cmd/envault` behavior as a stable interface for end users and automation.
+Validate `cmd/envchain` behavior as a stable interface for end users and automation.
 
 ## Problem
 
@@ -26,7 +26,7 @@ Core providers are tested, but CLI command wiring has no direct tests. This risk
 
 ## Implementation Tasks
 
-1. Add tests around `run(args []string)` in `cmd/envault/main_test.go`.
+1. Add tests around `run(args []string)` in `cmd/envchain/main_test.go`.
 2. Isolate process execution for testability (inject command runner if needed).
 3. Capture stderr/stdout in tests for deterministic assertions.
 4. Add test fixtures for provider failure paths.
