@@ -12,15 +12,15 @@ tasks:
     cmds:
       - go test ./...
 
-  vet:
-    desc: Run go vet checks
+  lint:
+    desc: Run golangci-lint checks
     cmds:
-      - go vet ./...
+      - golangci-lint run
 
   fmt:
-    desc: Format Go source files
+    desc: Format Go source files using golangci-lint
     cmds:
-      - go fmt ./...
+      - golangci-lint run --fix --disable-all --enable gofmt
 
   build:
     desc: Build the envault CLI
@@ -30,5 +30,6 @@ tasks:
   ci:
     desc: Run local checks aligned with CI
     cmds:
+      - task: fmt
+      - task: lint
       - task: test
-      - task: vet

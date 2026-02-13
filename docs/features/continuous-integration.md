@@ -20,11 +20,7 @@ Without CI, users and contributors cannot quickly trust that changes preserve be
 - Use supported Go versions.
 - Run:
   - `go test ./...`
-  - `go vet ./...`
-
-Optional follow-ups:
-
-- `golangci-lint`
+  - `golangci-lint run` with `staticcheck` and `errcheck`
 - race tests (`go test -race ./...`)
 - coverage upload/reporting
 
