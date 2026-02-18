@@ -2,7 +2,7 @@
 
 ## Overview
 
-`envchain` is a tiny helper for Go services that **backfills** environment variables from one or more **providers** — without overwriting anything that’s already set. It also provides a small helper, `GetEnvOrDefault`, for reading environment variables with defaults.
+`envchain` is a tiny helper for Go services that **backfills** environment variables from one or more **providers** — without overwriting anything that’s already set. It also provides a small helper, `GetEnv`, for reading environment variables with defaults.
 
 #### Providers Available:
 
@@ -91,7 +91,7 @@ func main() {
 	    log.Printf("env injection warnings: %v", err)
 	}
 
-	// ... retrieve env vars with os.GetEnv or envchain.GetEnvOrDefault
+	// ... retrieve env vars with os.GetEnv or envchain.GetEnv
 }
 ```
 
@@ -127,16 +127,16 @@ if err := envchain.InjectWithContext(ctx, dotenv.NewProvider(".env"), vault.NewP
 
 ## Reading Environment Variables with Defaults
 
-Instead of manually checking for missing values, use `GetEnvOrDefault`:
+Instead of manually checking for missing values, use `GetEnv`:
 
 ```go
-// GetEnvOrDefault returns the value of an environment variable if set,
-// otherwise it returns the provided default.
-func GetEnvOrDefault(key, def string) string {
-    if val, ok := os.LookupEnv(key); ok {
-        return val
-    }
-    return def
+// GetEnv returns an EnvContainer with the looked-up value and ok state.
+func GetEnv(key string) EnvContainer
+
+// WithDefault returns the same container if the env key was set.
+// If unset, it returns a container with the provided default value.
+func (c EnvContainer) WithDefault(def string) EnvContainer {
+    // ...
 }
 ```
 
@@ -154,14 +154,14 @@ import (
 
 func main() {
 	// Example: PORT will default to 8080 if not set.
-	port := envchain.GetEnvOrDefault("PORT", "8080")
-	addr := envchain.GetEnvOrDefault("ADDR", ":http")
+	port := envchain.GetEnv("PORT").WithDefault("8080").asString()
+	addr := envchain.GetEnv("ADDR").WithDefault(":http").asString()
 
 	fmt.Println("Starting server on", addr, "port", port)
 
 	// Example with empty string (treated as set):
 	_ = os.Setenv("DEBUG", "")
-	debug := envchain.GetEnvOrDefault("DEBUG", "false")
+	debug := envchain.GetEnv("DEBUG").WithDefault("false").asString()
 	fmt.Println("Debug mode =", debug)
 }
 ```

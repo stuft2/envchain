@@ -12,7 +12,7 @@ Consumers repeatedly parse strings into ints, booleans, and durations, with inco
 - `GetDurationOrDefault(key string, def time.Duration) (time.Duration, error)`
 
 ## Design
-- Preserve current `GetEnvOrDefault` behavior.
+- Preserve current `GetEnv` behavior.
 - Return errors that include the env key and invalid value.
 - Clearly document unset vs empty semantics.
 
