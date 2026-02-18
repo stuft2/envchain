@@ -1,4 +1,4 @@
-module github.com/stuft2/envault
+module github.com/stuft2/envchain
 
 go 1.26
 

@@ -1,4 +1,4 @@
-package envault
+package envchain
 
 import (
 	"context"
@@ -6,7 +6,7 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stuft2/envault/internal"
+	"github.com/stuft2/envchain/internal"
 )
 
 type stubProvider struct {

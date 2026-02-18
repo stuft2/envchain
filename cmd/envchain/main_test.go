@@ -10,10 +10,10 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stuft2/envault"
-	"github.com/stuft2/envault/internal"
-	"github.com/stuft2/envault/providers/dotenv"
-	"github.com/stuft2/envault/providers/vault"
+	"github.com/stuft2/envchain"
+	"github.com/stuft2/envchain/internal"
+	"github.com/stuft2/envchain/providers/dotenv"
+	"github.com/stuft2/envchain/providers/vault"
 )
 
 func TestRunHelpReturnsZeroAndUsage(t *testing.T) {
@@ -33,7 +33,7 @@ func TestRunHelpReturnsZeroAndUsage(t *testing.T) {
 	if code != 0 {
 		t.Fatalf("runWithDeps code=%d want 0", code)
 	}
-	if got := stderr.String(); !strings.Contains(got, "Usage: envault [flags] -- command [args...]") {
+	if got := stderr.String(); !strings.Contains(got, "Usage: envchain [flags] -- command [args...]") {
 		t.Fatalf("usage output missing; got %q", got)
 	}
 }
@@ -82,7 +82,7 @@ func TestRunNonExistentCommandReturnsExecutionError(t *testing.T) {
 
 	var stderr bytes.Buffer
 	code := runWithDeps(
-		[]string{"--", "definitely-not-a-real-command-envault-test"},
+		[]string{"--", "definitely-not-a-real-command-envchain-test"},
 		strings.NewReader(""),
 		&bytes.Buffer{},
 		&stderr,
@@ -94,7 +94,7 @@ func TestRunNonExistentCommandReturnsExecutionError(t *testing.T) {
 		t.Fatalf("runWithDeps code=%d want 1", code)
 	}
 	msg := stderr.String()
-	if !strings.Contains(msg, `failed to execute "definitely-not-a-real-command-envault-test"`) {
+	if !strings.Contains(msg, `failed to execute "definitely-not-a-real-command-envchain-test"`) {
 		t.Fatalf("stderr missing execution error message; got %q", msg)
 	}
 }
@@ -150,7 +150,7 @@ func TestRunVerboseEnablesDebugLoggingWithoutSecretLeakage(t *testing.T) {
 		strings.NewReader(""),
 		&bytes.Buffer{},
 		&stderr,
-		envault.Inject,
+		envchain.Inject,
 		gatherProviders,
 		func(string, []string, io.Reader, io.Writer, io.Writer) (int, error) { return 0, nil },
 	)
@@ -183,7 +183,7 @@ func TestRunProviderErrorReturnsOne(t *testing.T) {
 	if code != 1 {
 		t.Fatalf("runWithDeps code=%d want 1", code)
 	}
-	if got := stderr.String(); !strings.Contains(got, "envault: inject failed") {
+	if got := stderr.String(); !strings.Contains(got, "envchain: inject failed") {
 		t.Fatalf("stderr missing provider failure; got %q", got)
 	}
 }

@@ -2,7 +2,7 @@
 
 ## Goal
 
-Allow users to install and use `envault` without requiring a local Go toolchain.
+Allow users to install and use `envchain` without requiring a local Go toolchain.
 
 ## Problem
 
@@ -23,7 +23,7 @@ Current installation flow assumes Go is installed and configured. This is a barr
 ## Implementation Tasks
 
 1. Add a release workflow (e.g., GoReleaser or custom GitHub Actions).
-2. Produce archives per platform with `envault` binary.
+2. Produce archives per platform with `envchain` binary.
 3. Generate `checksums.txt` for each release.
 4. Document install methods:
    - direct binary download

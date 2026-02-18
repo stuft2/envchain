@@ -18,7 +18,7 @@ Current README explains concepts well, but new users still need a fast copy/past
 
 1. Install CLI.
 2. Create sample `.env`.
-3. Run `envault -- env` (or equivalent) and verify expected variables.
+3. Run `envchain -- env` (or equivalent) and verify expected variables.
 4. Optional Vault example with required env vars.
 
 ## Troubleshooting Scope

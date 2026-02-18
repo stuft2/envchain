@@ -1,4 +1,4 @@
-package envault
+package envchain
 
 import (
 	"fmt"

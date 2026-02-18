@@ -27,7 +27,7 @@ tasks:
       - golangci-lint fmt
 
   build:
-    desc: Build the envault CLI
+    desc: Build the envchain CLI
     cmds:
       - go build ./cmd/envchain
 

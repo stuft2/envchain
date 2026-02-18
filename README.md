@@ -1,8 +1,8 @@
-# envault
+# envchain
 
 ## Overview
 
-`envault` is a tiny helper for Go services that **backfills** environment variables from one or more **providers** — without overwriting anything that’s already set. It also provides a small helper, `GetEnvOrDefault`, for reading environment variables with defaults.
+`envchain` is a tiny helper for Go services that **backfills** environment variables from one or more **providers** — without overwriting anything that’s already set. It also provides a small helper, `GetEnvOrDefault`, for reading environment variables with defaults.
 
 #### Providers Available:
 
@@ -26,12 +26,12 @@ Local dev:
 
 1. Install the CLI:
    ```bash
-   go install github.com/stuft2/envault/cmd/envchain@latest
+   go install github.com/stuft2/envchain/cmd/envchain@latest
    ```
 1. Create a sample `.env`:
    ```bash
    cat > .env <<'EOF'
-   APP_NAME=envault-demo
+   APP_NAME=envchain-demo
    PORT=8080
    EOF
    ```
@@ -41,7 +41,7 @@ Local dev:
    ```
 1. Verify output:
    ```text
-   APP_NAME=envault-demo
+   APP_NAME=envchain-demo
    PORT=8080
    ```
 
@@ -70,7 +70,7 @@ CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault pr
 
 ### Injecting Environment Variables
 
-Construct the providers you want and pass them to `envault.Inject` in **precedence order**:
+Construct the providers you want and pass them to `envchain.Inject` in **precedence order**:
 
 ```go
 package main
@@ -78,20 +78,20 @@ package main
 import (
     "log"
 
-    "github.com/stuft2/envault"
-    "github.com/stuft2/envault/providers/dotenv"
-    "github.com/stuft2/envault/providers/vault"
+    "github.com/stuft2/envchain"
+    "github.com/stuft2/envchain/providers/dotenv"
+    "github.com/stuft2/envchain/providers/vault"
 )
 
 func main() {
 	// Precedence: keep existing env, then .env, then Vault. 
-	if err := envault.Inject(dotenv.NewProvider(".env"), vault.NewProvider("kvv2/byuapi-persons-v4/dev/env-vars")); err != nil {
+	if err := envchain.Inject(dotenv.NewProvider(".env"), vault.NewProvider("kvv2/byuapi-persons-v4/dev/env-vars")); err != nil {
 	    // could make provider errors fatal, but we're assuming that deployed environments
 	    // will always have config and secrets injected before server start.
 	    log.Printf("env injection warnings: %v", err)
 	}
 
-	// ... retrieve env vars with os.GetEnv or envault.GetEnvOrDefault
+	// ... retrieve env vars with os.GetEnv or envchain.GetEnvOrDefault
 }
 ```
 
@@ -114,13 +114,13 @@ Context: The Vault provider uses a background context by default. To override:
 ```go
 p := vault.NewProvider("/app/web")
 p.Context = ctx // set deadlines, cancellation, etc.
-if err := envault.Inject(p); err != nil { /* ... */ }
+if err := envchain.Inject(p); err != nil { /* ... */ }
 ```
 
 Or pass one shared context across all context-aware providers:
 
 ```go
-if err := envault.InjectWithContext(ctx, dotenv.NewProvider(".env"), vault.NewProvider("/app/web")); err != nil {
+if err := envchain.InjectWithContext(ctx, dotenv.NewProvider(".env"), vault.NewProvider("/app/web")); err != nil {
 	// handle joined provider errors
 }
 ```
@@ -149,19 +149,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stuft2/envault"
+	"github.com/stuft2/envchain"
 )
 
 func main() {
 	// Example: PORT will default to 8080 if not set.
-	port := envault.GetEnvOrDefault("PORT", "8080")
-	addr := envault.GetEnvOrDefault("ADDR", ":http")
+	port := envchain.GetEnvOrDefault("PORT", "8080")
+	addr := envchain.GetEnvOrDefault("ADDR", ":http")
 
 	fmt.Println("Starting server on", addr, "port", port)
 
 	// Example with empty string (treated as set):
 	_ = os.Setenv("DEBUG", "")
-	debug := envault.GetEnvOrDefault("DEBUG", "false")
+	debug := envchain.GetEnvOrDefault("DEBUG", "false")
 	fmt.Println("Debug mode =", debug)
 }
 ```
@@ -198,11 +198,11 @@ Symptom: `vault: invalid VAULT_ADDR "...": ...`
 Cause: `VAULT_ADDR` is malformed (missing scheme, invalid host, or invalid URL).  
 Fix: use a valid URL such as `https://vault.byu.edu` (or `https://vault.byu.edu/v1`).
 
-Symptom: `Usage: envault [flags] -- command [args...]`  
+Symptom: `Usage: envchain [flags] -- command [args...]`  
 Cause: command was not passed after `--`.  
 Fix: provide a command after separator, for example `envchain -- env`.
 
-Symptom: `envault: failed to execute "..."`  
+Symptom: `envchain: failed to execute "..."`  
 Cause: the command after `--` is missing from `PATH` or not executable.  
 Fix: verify the executable name and run `which <command>` to confirm availability.
 

@@ -13,7 +13,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/stuft2/envault/internal"
+	"github.com/stuft2/envchain/internal"
 )
 
 type Provider struct {
