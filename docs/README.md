@@ -1,6 +1,6 @@
-# envault Docs
+# envchain Docs
 
-This folder outlines the remaining work to make `envault` easy to adopt across teams and environments.
+This folder outlines the remaining work to make `envchain` easy to adopt across teams and environments.
 
 ## Roadmap
 

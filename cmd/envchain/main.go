@@ -9,10 +9,10 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/stuft2/envault"
-	"github.com/stuft2/envault/internal"
-	"github.com/stuft2/envault/providers/dotenv"
-	"github.com/stuft2/envault/providers/vault"
+	"github.com/stuft2/envchain"
+	"github.com/stuft2/envchain/internal"
+	"github.com/stuft2/envchain/providers/dotenv"
+	"github.com/stuft2/envchain/providers/vault"
 )
 
 func main() {
@@ -20,7 +20,7 @@ func main() {
 }
 
 func run(args []string) int {
-	return runWithDeps(args, os.Stdin, os.Stdout, os.Stderr, envault.Inject, gatherProviders, defaultCommandExecutor)
+	return runWithDeps(args, os.Stdin, os.Stdout, os.Stderr, envchain.Inject, gatherProviders, defaultCommandExecutor)
 }
 
 type injectFunc func(...internal.Provider) error
@@ -36,7 +36,7 @@ func runWithDeps(
 	gather gatherProvidersFunc,
 	executeCommand commandExecutorFunc,
 ) int {
-	fs := flag.NewFlagSet("envault", flag.ContinueOnError)
+	fs := flag.NewFlagSet("envchain", flag.ContinueOnError)
 	fs.SetOutput(stderr)
 
 	dotenvPath := fs.String("dotenv", ".env", "path to a dotenv file (empty to skip)")
@@ -44,7 +44,7 @@ func runWithDeps(
 	verbose := fs.Bool("verbose", false, "enable verbose logging")
 
 	fs.Usage = func() {
-		fmt.Fprintln(fs.Output(), "Usage: envault [flags] -- command [args...]")
+		fmt.Fprintln(fs.Output(), "Usage: envchain [flags] -- command [args...]")
 		fmt.Fprintln(fs.Output())
 		fmt.Fprintln(fs.Output(), "Flags:")
 		fs.PrintDefaults()
@@ -64,20 +64,20 @@ func runWithDeps(
 	}
 
 	if *verbose {
-		logger := log.New(stderr, "envault: ", log.LstdFlags)
+		logger := log.New(stderr, "envchain: ", log.LstdFlags)
 		internal.SetLogger(logger)
 		internal.Debugf("verbose logging enabled")
 	}
 
 	providers := gather(*dotenvPath, *vaultPath)
 	if err := inject(providers...); err != nil {
-		fmt.Fprintf(stderr, "envault: %v\n", err)
+		fmt.Fprintf(stderr, "envchain: %v\n", err)
 		return 1
 	}
 
 	exitCode, err := executeCommand(rest[0], rest[1:], stdin, stdout, stderr)
 	if err != nil {
-		fmt.Fprintf(stderr, "envault: failed to execute %q: %v\n", rest[0], err)
+		fmt.Fprintf(stderr, "envchain: failed to execute %q: %v\n", rest[0], err)
 		return 1
 	}
 	return exitCode

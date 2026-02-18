@@ -1,10 +1,10 @@
-package envault
+package envchain
 
 import (
 	"context"
 	"errors"
 
-	"github.com/stuft2/envault/internal"
+	"github.com/stuft2/envchain/internal"
 )
 
 func Inject(providers ...internal.Provider) error {

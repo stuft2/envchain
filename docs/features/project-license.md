@@ -2,7 +2,7 @@
 
 ## Goal
 
-Provide clear legal terms so organizations can evaluate and adopt `envault` without ambiguity.
+Provide clear legal terms so organizations can evaluate and adopt `envchain` without ambiguity.
 
 ## Problem
 
