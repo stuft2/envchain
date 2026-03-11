@@ -6,6 +6,7 @@ import (
 	"math"
 	"net/url"
 	"os"
+	"slices"
 	"strconv"
 	"strings"
 	"time"
@@ -233,10 +234,8 @@ func (c EnvContainer) asEnum(valid ...string) (string, error) {
 	if len(valid) == 0 {
 		return "", errors.New("enum options cannot be empty")
 	}
-	for _, candidate := range valid {
-		if c.value == candidate {
-			return c.value, nil
-		}
+	if slices.Contains(valid, c.value) {
+		return c.value, nil
 	}
 	return "", fmt.Errorf("value %q is not in enum %v", c.value, valid)
 }
