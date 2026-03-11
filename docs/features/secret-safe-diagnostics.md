@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No `--dry-run` or `--plan` CLI mode exists."
+  - "No dry-run read/evaluate-without-write execution path exists."
+  - "No tests verify diagnostics output contains keys only and performs no writes."
+---
+
 # Secret-Safe Diagnostics
 
 ## Summary

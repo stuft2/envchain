@@ -1,3 +1,10 @@
+---
+status: "Implemented"
+implemented_in:
+  - "[`README.md`](../../README.md)"
+gaps: []
+---
+
 # Quickstart and Troubleshooting Docs
 
 ## Goal

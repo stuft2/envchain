@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "CLI only accepts a single `-vault-path` string."
+  - "No documented or tested multi-path precedence for Vault inputs."
+  - "No repeated-flag or list-format parsing for multiple Vault paths."
+---
+
 # Multiple Vault Paths
 
 ## Summary

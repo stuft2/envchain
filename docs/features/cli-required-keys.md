@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No `--required` flag exists in CLI parsing."
+  - "No post-injection required-key validation gate before command execution."
+  - "No CLI tests for required-key success/failure behavior."
+---
+
 # CLI Required Keys Validation
 
 ## Summary

@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "Vault provider performs a network request on each injection attempt."
+  - "No in-memory or file cache implementation exists."
+  - "No TTL-based cache tests (hit/miss/expiry) exist."
+---
+
 # Vault Result Caching
 
 ## Summary

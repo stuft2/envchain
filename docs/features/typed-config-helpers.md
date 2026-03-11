@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "`GetIntOrDefault`, `GetBoolOrDefault`, and `GetDurationOrDefault` do not exist in `envchain`."
+  - "No parse-error format covering key and invalid value is implemented."
+  - "Tests only cover `GetEnvOrDefault`."
+---
+
 # Typed Config Helpers
 
 ## Summary

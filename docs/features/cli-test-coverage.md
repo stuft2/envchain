@@ -1,3 +1,11 @@
+---
+status: "Implemented"
+implemented_in:
+  - "[`cmd/envchain/main.go`](../../cmd/envchain/main.go)"
+  - "[`cmd/envchain/main_test.go`](../../cmd/envchain/main_test.go)"
+gaps: []
+---
+
 # CLI Test Coverage
 
 ## Goal

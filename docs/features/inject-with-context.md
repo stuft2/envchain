@@ -1,3 +1,15 @@
+---
+status: "Implemented"
+implemented_in:
+  - "[`inject.go`](../../inject.go)"
+  - "[`internal/provider.go`](../../internal/provider.go)"
+  - "[`providers/vault/provider.go`](../../providers/vault/provider.go)"
+  - "[`inject_test.go`](../../inject_test.go)"
+  - "[`providers/vault/provider_test.go`](../../providers/vault/provider_test.go)"
+  - "[`README.md`](../../README.md)"
+gaps: []
+---
+
 # Inject With Context
 
 ## Summary

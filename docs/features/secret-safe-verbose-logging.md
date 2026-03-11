@@ -1,3 +1,13 @@
+---
+status: "Implemented"
+implemented_in:
+  - "[`internal/provider.go`](../../internal/provider.go)"
+  - "[`internal/logging.go`](../../internal/logging.go)"
+  - "[`cmd/envchain/main_test.go`](../../cmd/envchain/main_test.go)"
+  - "[`README.md`](../../README.md)"
+gaps: []
+---
+
 # Secret-Safe Verbose Logging
 
 ## Goal

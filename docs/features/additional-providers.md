@@ -1,3 +1,11 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No provider beyond dotenv and Vault exists under `providers/`."
+  - "No docs/tests for a third provider."
+---
+
 # Additional Providers
 
 ## Summary

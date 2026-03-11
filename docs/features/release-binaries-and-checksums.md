@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No release workflow or GoReleaser config exists."
+  - "No multi-platform binary artifact process is defined."
+  - "No release checksum generation or install instructions for binary artifacts."
+---
+
 # Release Binaries and Checksums
 
 ## Goal

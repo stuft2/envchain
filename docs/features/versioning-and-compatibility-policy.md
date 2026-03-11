@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No documented SemVer policy section exists in README."
+  - "No `CHANGELOG.md` exists."
+  - "No release process enforcing tag/release-note expectations is configured."
+---
+
 # Versioning and Compatibility Policy
 
 ## Goal

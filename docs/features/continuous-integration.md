@@ -1,3 +1,16 @@
+---
+status: "Partial"
+implemented_in:
+  - "[`.github/workflows/ci.yml`](../../.github/workflows/ci.yml)"
+  - "[`README.md`](../../README.md)"
+  - "[`.golangci.yml`](../../.golangci.yml)"
+gaps:
+  - "`go test -race ./...` is not run in CI."
+  - "Coverage upload/reporting is not configured."
+  - "Required status checks and branch protection cannot be verified from repo files alone."
+  - "README does not include a CI status badge."
+---
+
 # Continuous Integration
 
 ## Goal

@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No shared include/exclude/prefix-strip transform pipeline exists."
+  - "No provider options for allowlist/prefix filters."
+  - "No deterministic composition tests for filtering rules."
+---
+
 # Key Filtering And Transform Rules
 
 ## Summary

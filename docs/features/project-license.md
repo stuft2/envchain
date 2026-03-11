@@ -1,3 +1,12 @@
+---
+status: "Not Started"
+implemented_in: []
+gaps:
+  - "No `LICENSE` file exists at the repository root."
+  - "README does not declare a license section."
+  - "Repository metadata cannot advertise license without a root license file."
+---
+
 # Project License
 
 ## Goal
