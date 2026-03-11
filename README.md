@@ -66,36 +66,14 @@ Environment variables such as `VAULT_ADDR`, `VAULT_TOKEN`, and `VAULT_NAMESPACE`
 
 CI/Prod: rely on process env only. If you don’t set `VAULT_ADDR`, the Vault provider is inert, and a missing `.env` is ignored.
 
-## Programmatic Usage
+## Modules
 
-### Injecting Environment Variables
+`envchain` now exposes configuration helpers separately from injection orchestration:
 
-Construct the providers you want and pass them to `envchain.Inject` in **precedence order**:
+- The `envchain` CLI performs environment injection.
+- The `config` package provides environment lookup and parsing helpers.
 
-```go
-package main
-
-import (
-    "log"
-
-    "github.com/stuft2/envchain"
-    "github.com/stuft2/envchain/providers/dotenv"
-    "github.com/stuft2/envchain/providers/vault"
-)
-
-func main() {
-	// Precedence: keep existing env, then .env, then Vault. 
-	if err := envchain.Inject(dotenv.NewProvider(".env"), vault.NewProvider("kvv2/byuapi-persons-v4/dev/env-vars")); err != nil {
-	    // could make provider errors fatal, but we're assuming that deployed environments
-	    // will always have config and secrets injected before server start.
-	    log.Printf("env injection warnings: %v", err)
-	}
-
-	// ... retrieve env vars with os.GetEnv or envchain.GetEnv
-}
-```
-
-You can include any number of providers; only unset keys are written.
+Injection orchestration is internal to this repository and is not exposed as a public Go API.
 
 ### Vault provider requirements
 
@@ -109,33 +87,19 @@ The Vault provider is active when these are satisfied:
 
 Timeouts: Vault HTTP requests use a 10s timeout.
 
-Context: The Vault provider uses a background context by default. To override:
-
-```go
-p := vault.NewProvider("/app/web")
-p.Context = ctx // set deadlines, cancellation, etc.
-if err := envchain.Inject(p); err != nil { /* ... */ }
-```
-
-Or pass one shared context across all context-aware providers:
-
-```go
-if err := envchain.InjectWithContext(ctx, dotenv.NewProvider(".env"), vault.NewProvider("/app/web")); err != nil {
-	// handle joined provider errors
-}
-```
+Context: The Vault provider uses a background context by default. To override, set `Provider.Context` before the provider is used by the CLI or internal injection flow.
 
 ## Reading Environment Variables with Defaults
 
-Instead of manually checking for missing values, use `GetEnv`:
+Instead of manually checking for missing values, use `config.GetEnv`:
 
 ```go
 // GetEnv returns an EnvContainer with the looked-up value and ok state.
-func GetEnv(key string) EnvContainer
+func GetEnv(key string) config.EnvContainer
 
 // WithDefault returns the same container if the env key was set.
 // If unset, it returns a container with the provided default value.
-func (c EnvContainer) WithDefault(def string) EnvContainer {
+func (c config.EnvContainer) WithDefault(def string) config.EnvContainer {
     // ...
 }
 ```
@@ -149,19 +113,19 @@ import (
 	"fmt"
 	"os"
 
-	"github.com/stuft2/envchain"
+	"github.com/stuft2/envchain/config"
 )
 
 func main() {
 	// Example: PORT will default to 8080 if not set.
-	port := envchain.GetEnv("PORT").WithDefault("8080").asString()
-	addr := envchain.GetEnv("ADDR").WithDefault(":http").asString()
+	port := config.GetEnv("PORT").WithDefault("8080").String()
+	addr := config.GetEnv("ADDR").WithDefault(":http").String()
 
 	fmt.Println("Starting server on", addr, "port", port)
 
 	// Example with empty string (treated as set):
 	_ = os.Setenv("DEBUG", "")
-	debug := envchain.GetEnv("DEBUG").WithDefault("false").asString()
+	debug := config.GetEnv("DEBUG").WithDefault("false").String()
 	fmt.Println("Debug mode =", debug)
 }
 ```

@@ -1,4 +1,4 @@
-package envchain
+package config
 
 import (
 	"errors"
@@ -46,6 +46,10 @@ func (c EnvContainer) Required() EnvContainer {
 
 func (c EnvContainer) asString() string {
 	return c.value
+}
+
+func (c EnvContainer) String() string {
+	return c.asString()
 }
 
 func (c EnvContainer) asNumber() (float64, error) {

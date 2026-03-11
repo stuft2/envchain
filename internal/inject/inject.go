@@ -1,4 +1,4 @@
-package envchain
+package inject
 
 import (
 	"context"
@@ -7,7 +7,7 @@ import (
 	"github.com/stuft2/envchain/internal"
 )
 
-func Inject(providers ...internal.Provider) error {
+func Run(providers ...internal.Provider) error {
 	var errs []error
 	for _, provider := range providers {
 		internal.Debugf("injecting provider %T", provider)
@@ -18,11 +18,10 @@ func Inject(providers ...internal.Provider) error {
 			internal.Debugf("provider %T finished", provider)
 		}
 	}
-	// Returns nil if errs list is empty or all are entries nil
 	return errors.Join(errs...)
 }
 
-func InjectWithContext(ctx context.Context, providers ...internal.Provider) error {
+func RunWithContext(ctx context.Context, providers ...internal.Provider) error {
 	if ctx == nil {
 		ctx = context.Background()
 	}
@@ -46,6 +45,5 @@ func InjectWithContext(ctx context.Context, providers ...internal.Provider) erro
 		}
 	}
 
-	// Returns nil if errs list is empty or all are entries nil
 	return errors.Join(errs...)
 }

@@ -31,5 +31,5 @@ Consumers repeatedly parse strings into ints, booleans, and durations, with inco
 - Table-driven tests cover happy and failure paths.
 
 ## Implementation Notes
-- Current helper location: `/Users/stuft2/Projects/envchain/env_default.go`
-- Tests: `/Users/stuft2/Projects/envchain/env_default_test.go`
+- Current helper location: `/Users/stuft2/Projects/envchain/config/env.go`
+- Tests: `/Users/stuft2/Projects/envchain/config/env_test.go`

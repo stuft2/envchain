@@ -10,8 +10,8 @@ import (
 	"strings"
 	"testing"
 
-	"github.com/stuft2/envchain"
 	"github.com/stuft2/envchain/internal"
+	internalinject "github.com/stuft2/envchain/internal/inject"
 	"github.com/stuft2/envchain/providers/dotenv"
 	"github.com/stuft2/envchain/providers/vault"
 )
@@ -150,7 +150,7 @@ func TestRunVerboseEnablesDebugLoggingWithoutSecretLeakage(t *testing.T) {
 		strings.NewReader(""),
 		&bytes.Buffer{},
 		&stderr,
-		envchain.Inject,
+		internalinject.Run,
 		gatherProviders,
 		func(string, []string, io.Reader, io.Writer, io.Writer) (int, error) { return 0, nil },
 	)

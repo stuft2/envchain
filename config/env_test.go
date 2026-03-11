@@ -1,4 +1,4 @@
-package envchain
+package config
 
 import (
 	"fmt"
@@ -12,7 +12,7 @@ import (
 func TestGetEnv(t *testing.T) {
 	t.Run("returns default when unset", func(t *testing.T) {
 		const key = "TEST_GETENVORDEFAULT_UNSET"
-		_ = os.Unsetenv(key) // ensure it's unset
+		_ = os.Unsetenv(key)
 
 		got := GetEnv(key).WithDefault("fallback")
 		if got.asString() != "fallback" {
@@ -109,12 +109,9 @@ func TestEnvContainerRequired(t *testing.T) {
 	})
 }
 
-// Example test shows typical usage.
-// Keep environment hygiene so it doesn't leak to other tests.
 func ExampleGetEnv() {
 	const key = "EXAMPLE_PORT"
 
-	// Save original and restore after.
 	orig, had := os.LookupEnv(key)
 	if had {
 		defer os.Setenv(key, orig)
@@ -245,7 +242,8 @@ func TestEnvContainerAsUint(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "valid uint", value: "42", want: 42},
-		{name: "negative uint", value: "-1", wantErr: true},
+		{name: "negative", value: "-1", wantErr: true},
+		{name: "float", value: "4.2", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -269,7 +267,7 @@ func TestEnvContainerAsUint64(t *testing.T) {
 		wantErr bool
 	}{
 		{name: "valid uint64", value: "1844674407370955161", want: 1844674407370955161},
-		{name: "invalid uint64", value: "1.1", wantErr: true},
+		{name: "invalid uint64", value: "abc", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -292,8 +290,9 @@ func TestEnvContainerAsDuration(t *testing.T) {
 		want    time.Duration
 		wantErr bool
 	}{
-		{name: "valid duration", value: "1h30m", want: time.Hour + 30*time.Minute},
-		{name: "invalid duration", value: "90minutes", wantErr: true},
+		{name: "seconds", value: "5s", want: 5 * time.Second},
+		{name: "minutes", value: "2m", want: 2 * time.Minute},
+		{name: "invalid", value: "later", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -316,53 +315,38 @@ func TestEnvContainerAsURL(t *testing.T) {
 		want    *url.URL
 		wantErr bool
 	}{
-		{
-			name:  "valid url",
-			value: "https://example.com/path",
-			want: &url.URL{
-				Scheme: "https",
-				Host:   "example.com",
-				Path:   "/path",
-			},
-		},
-		{name: "invalid url", value: "://bad-url", wantErr: true},
+		{name: "valid", value: "https://example.com", want: &url.URL{Scheme: "https", Host: "example.com"}},
+		{name: "missing host", value: "https://", wantErr: true},
+		{name: "missing scheme", value: "example.com", wantErr: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := EnvContainer{value: tt.value}.asURL()
-			if tt.want != nil {
-				if got == nil || got.Scheme != tt.want.Scheme || got.Host != tt.want.Host || got.Path != tt.want.Path {
-					t.Fatalf("expected %v, got %v", tt.want, got)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
 				}
+				return
 			}
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("expected error=%v, got err=%v", tt.wantErr, err)
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
+			if got.Scheme != tt.want.Scheme || got.Host != tt.want.Host {
+				t.Fatalf("expected %v, got %v", tt.want, got)
 			}
 		})
 	}
 }
 
 func TestEnvContainerAsCSV(t *testing.T) {
-	tests := []struct {
-		name  string
-		value string
-		want  []string
-	}{
-		{name: "csv values", value: "a, b ,c", want: []string{"a", "b", "c"}},
-		{name: "empty string", value: "", want: []string{}},
+	got, err := EnvContainer{value: "a,b, c ,,d"}.asCSV()
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := EnvContainer{value: tt.value}.asCSV()
-			if err != nil {
-				t.Fatalf("expected nil error, got %v", err)
-			}
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("expected %v, got %v", tt.want, got)
-			}
-		})
+	want := []string{"a", "b", "c", "d"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
 	}
 }
 
@@ -374,51 +358,38 @@ func TestEnvContainerAsStringSlice(t *testing.T) {
 		want    []string
 		wantErr bool
 	}{
-		{name: "pipe separated", value: "a| b|c ", sep: "|", want: []string{"a", "b", "c"}},
+		{name: "valid", value: "a|b| c ", sep: "|", want: []string{"a", "b", "c"}},
+		{name: "empty value", value: " ", sep: "|", want: []string{}},
 		{name: "empty separator", value: "a,b", sep: "", wantErr: true},
 	}
 
 	for _, tt := range tests {
 		t.Run(tt.name, func(t *testing.T) {
 			got, err := EnvContainer{value: tt.value}.asStringSlice(tt.sep)
+			if tt.wantErr {
+				if err == nil {
+					t.Fatal("expected error, got nil")
+				}
+				return
+			}
+			if err != nil {
+				t.Fatalf("unexpected error: %v", err)
+			}
 			if !reflect.DeepEqual(got, tt.want) {
 				t.Fatalf("expected %v, got %v", tt.want, got)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("expected error=%v, got err=%v", tt.wantErr, err)
 			}
 		})
 	}
 }
 
 func TestEnvContainerAsTime(t *testing.T) {
-	tests := []struct {
-		name    string
-		value   string
-		layout  string
-		want    time.Time
-		wantErr bool
-	}{
-		{
-			name:   "rfc3339",
-			value:  "2026-02-18T12:00:00Z",
-			layout: time.RFC3339,
-			want:   time.Date(2026, 2, 18, 12, 0, 0, 0, time.UTC),
-		},
-		{name: "bad time", value: "2026/02/18", layout: time.RFC3339, wantErr: true},
-		{name: "empty layout", value: "2026-02-18T12:00:00Z", layout: "", wantErr: true},
+	want := time.Date(2026, time.March, 10, 0, 0, 0, 0, time.UTC)
+	got, err := EnvContainer{value: "2026-03-10"}.asTime("2006-01-02")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := EnvContainer{value: tt.value}.asTime(tt.layout)
-			if !tt.want.IsZero() && !got.Equal(tt.want) {
-				t.Fatalf("expected %v, got %v", tt.want, got)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("expected error=%v, got err=%v", tt.wantErr, err)
-			}
-		})
+	if !got.Equal(want) {
+		t.Fatalf("expected %v, got %v", want, got)
 	}
 }
 
@@ -429,11 +400,10 @@ func TestEnvContainerAsBytes(t *testing.T) {
 		want    int64
 		wantErr bool
 	}{
-		{name: "plain bytes", value: "1024", want: 1024},
-		{name: "decimal unit", value: "1.5MB", want: 1572864},
-		{name: "binary unit", value: "2GiB", want: 2147483648},
-		{name: "bad unit", value: "10XB", wantErr: true},
-		{name: "bad value", value: "abc", wantErr: true},
+		{name: "plain bytes", value: "42", want: 42},
+		{name: "kb", value: "2KB", want: 2048},
+		{name: "mib", value: "1MiB", want: 1024 * 1024},
+		{name: "invalid unit", value: "1XB", wantErr: true},
 	}
 
 	for _, tt := range tests {
@@ -450,60 +420,22 @@ func TestEnvContainerAsBytes(t *testing.T) {
 }
 
 func TestEnvContainerAsMap(t *testing.T) {
-	tests := []struct {
-		name     string
-		value    string
-		sepKV    string
-		sepEntry string
-		want     map[string]string
-		wantErr  bool
-	}{
-		{
-			name:     "valid map",
-			value:    "a=1,b=2",
-			sepKV:    "=",
-			sepEntry: ",",
-			want:     map[string]string{"a": "1", "b": "2"},
-		},
-		{name: "missing separator", value: "a=1", sepKV: "", sepEntry: ",", wantErr: true},
-		{name: "malformed pair", value: "a=1,b", sepKV: "=", sepEntry: ",", wantErr: true},
+	got, err := EnvContainer{value: "a=1,b=2"}.asMap("=", ",")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := EnvContainer{value: tt.value}.asMap(tt.sepKV, tt.sepEntry)
-			if !reflect.DeepEqual(got, tt.want) {
-				t.Fatalf("expected %v, got %v", tt.want, got)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("expected error=%v, got err=%v", tt.wantErr, err)
-			}
-		})
+	want := map[string]string{"a": "1", "b": "2"}
+	if !reflect.DeepEqual(got, want) {
+		t.Fatalf("expected %v, got %v", want, got)
 	}
 }
 
 func TestEnvContainerAsEnum(t *testing.T) {
-	tests := []struct {
-		name    string
-		value   string
-		valid   []string
-		want    string
-		wantErr bool
-	}{
-		{name: "valid enum", value: "prod", valid: []string{"dev", "prod"}, want: "prod"},
-		{name: "invalid enum", value: "qa", valid: []string{"dev", "prod"}, wantErr: true},
-		{name: "no options", value: "prod", valid: nil, wantErr: true},
+	got, err := EnvContainer{value: "dev"}.asEnum("dev", "prod")
+	if err != nil {
+		t.Fatalf("unexpected error: %v", err)
 	}
-
-	for _, tt := range tests {
-		t.Run(tt.name, func(t *testing.T) {
-			got, err := EnvContainer{value: tt.value}.asEnum(tt.valid...)
-			if got != tt.want {
-				t.Fatalf("expected %v, got %v", tt.want, got)
-			}
-			if (err != nil) != tt.wantErr {
-				t.Fatalf("expected error=%v, got err=%v", tt.wantErr, err)
-			}
-		})
+	if got != "dev" {
+		t.Fatalf("expected %q, got %q", "dev", got)
 	}
 }

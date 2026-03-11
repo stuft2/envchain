@@ -1,4 +1,4 @@
-package envchain
+package inject
 
 import (
 	"context"
@@ -14,7 +14,6 @@ type stubProvider struct {
 	called *int
 }
 
-// Ensure the provider is implemented
 var _ internal.Provider = stubProvider{}
 
 func (s stubProvider) Inject() error {
@@ -53,19 +52,19 @@ func (s stubContextProvider) InjectContext(ctx context.Context) error {
 	return ctx.Err()
 }
 
-func TestInjectReturnsNilWhenProvidersSucceed(t *testing.T) {
+func TestRunReturnsNilWhenProvidersSucceed(t *testing.T) {
 	var count int
-	if err := Inject(stubProvider{called: &count}); err != nil {
-		t.Fatalf("Inject: %v", err)
+	if err := Run(stubProvider{called: &count}); err != nil {
+		t.Fatalf("Run: %v", err)
 	}
 	if count != 1 {
 		t.Fatalf("expected provider to be called once, got %d", count)
 	}
 }
 
-func TestInjectContinuesAfterErrors(t *testing.T) {
+func TestRunContinuesAfterErrors(t *testing.T) {
 	var first, second int
-	err := Inject(
+	err := Run(
 		stubProvider{called: &first, err: errors.New("first")},
 		stubProvider{called: &second},
 	)
@@ -77,8 +76,8 @@ func TestInjectContinuesAfterErrors(t *testing.T) {
 	}
 }
 
-func TestInjectJoinsMultipleErrors(t *testing.T) {
-	err := Inject(
+func TestRunJoinsMultipleErrors(t *testing.T) {
+	err := Run(
 		stubProvider{err: errors.New("first")},
 		stubProvider{err: errors.New("second")},
 	)
@@ -91,19 +90,19 @@ func TestInjectJoinsMultipleErrors(t *testing.T) {
 	}
 }
 
-func TestInjectWithContextUsesContextProvider(t *testing.T) {
+func TestRunWithContextUsesContextProvider(t *testing.T) {
 	var contextCalls, legacyCalls int
 	var got context.Context
 	type ctxKey string
 	ctx := context.WithValue(context.Background(), ctxKey("k"), "v")
 
-	err := InjectWithContext(
+	err := RunWithContext(
 		ctx,
 		stubContextProvider{called: &contextCalls, ctx: &got, err: nil},
 		stubProvider{called: &legacyCalls},
 	)
 	if err != nil {
-		t.Fatalf("InjectWithContext: %v", err)
+		t.Fatalf("RunWithContext: %v", err)
 	}
 	if contextCalls != 1 || legacyCalls != 1 {
 		t.Fatalf("providers called counts: context=%d legacy=%d", contextCalls, legacyCalls)
@@ -113,12 +112,12 @@ func TestInjectWithContextUsesContextProvider(t *testing.T) {
 	}
 }
 
-func TestInjectWithContextCancelledContext(t *testing.T) {
+func TestRunWithContextCancelledContext(t *testing.T) {
 	var contextCalls int
 	ctx, cancel := context.WithCancel(context.Background())
 	cancel()
 
-	err := InjectWithContext(ctx, stubContextProvider{called: &contextCalls})
+	err := RunWithContext(ctx, stubContextProvider{called: &contextCalls})
 	if err == nil {
 		t.Fatal("expected canceled context error, got nil")
 	}
@@ -130,8 +129,8 @@ func TestInjectWithContextCancelledContext(t *testing.T) {
 	}
 }
 
-func TestInjectWithContextJoinsErrors(t *testing.T) {
-	err := InjectWithContext(
+func TestRunWithContextJoinsErrors(t *testing.T) {
+	err := RunWithContext(
 		context.Background(),
 		stubContextProvider{err: errors.New("ctx provider")},
 		stubProvider{err: errors.New("legacy provider")},

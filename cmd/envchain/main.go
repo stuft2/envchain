@@ -9,8 +9,8 @@ import (
 	"os"
 	"os/exec"
 
-	"github.com/stuft2/envchain"
 	"github.com/stuft2/envchain/internal"
+	internalinject "github.com/stuft2/envchain/internal/inject"
 	"github.com/stuft2/envchain/providers/dotenv"
 	"github.com/stuft2/envchain/providers/vault"
 )
@@ -20,7 +20,7 @@ func main() {
 }
 
 func run(args []string) int {
-	return runWithDeps(args, os.Stdin, os.Stdout, os.Stderr, envchain.Inject, gatherProviders, defaultCommandExecutor)
+	return runWithDeps(args, os.Stdin, os.Stdout, os.Stderr, internalinject.Run, gatherProviders, defaultCommandExecutor)
 }
 
 type injectFunc func(...internal.Provider) error
