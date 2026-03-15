@@ -89,44 +89,218 @@ Timeouts: Vault HTTP requests use a 10s timeout.
 
 Context: The Vault provider uses a background context by default. To override, set `Provider.Context` before the provider is used by the CLI or internal injection flow.
 
-## Reading Environment Variables with Defaults
+## Loading Config From Environment Tags
 
-Instead of manually checking for missing values, use `config.GetEnv`:
-
-```go
-// GetEnv returns an EnvContainer with the looked-up value and ok state.
-func GetEnv(key string) config.EnvContainer
-
-// WithDefault returns the same container if the env key was set.
-// If unset, it returns a container with the provided default value.
-func (c config.EnvContainer) WithDefault(def string) config.EnvContainer {
-    // ...
-}
-```
-
-This lets you simplify configuration code:
+Define a config struct and let `config.Load` populate it from `env` tags:
 
 ```go
 package main
 
 import (
 	"fmt"
-	"os"
+	"net/url"
+	"time"
 
 	"github.com/stuft2/envchain/config"
 )
 
+type appConfig struct {
+	Port    int           `env:"PORT,default=8080"`
+	Addr    string        `env:"ADDR,default=:http"`
+	Debug   bool          `env:"DEBUG,default=false"`
+	Timeout time.Duration `env:"TIMEOUT,default=5s"`
+	BaseURL *url.URL      `env:"BASE_URL,required"`
+}
+
 func main() {
-	// Example: PORT will default to 8080 if not set.
-	port := config.GetEnv("PORT").WithDefault("8080").String()
-	addr := config.GetEnv("ADDR").WithDefault(":http").String()
+	var cfg appConfig
+	if err := config.Load(&cfg); err != nil {
+		panic(err)
+	}
 
-	fmt.Println("Starting server on", addr, "port", port)
+	fmt.Println("Starting server on", cfg.Addr, "port", cfg.Port)
+	fmt.Println("Debug mode =", cfg.Debug)
+}
+```
 
-	// Example with empty string (treated as set):
-	_ = os.Setenv("DEBUG", "")
-	debug := config.GetEnv("DEBUG").WithDefault("false").String()
-	fmt.Println("Debug mode =", debug)
+`config.Load` reads exported struct fields with an `env` tag. It walks nested structs, applies defaults, and returns a single aggregated error if any required values are missing or any values fail to parse.
+
+Tag format:
+
+```go
+`env:"ENV_KEY,option,option=value"`
+```
+
+General rules:
+
+- The first tag segment is always the environment variable name.
+- Omit the tag to ignore a field entirely.
+- Use `env:"-"` to explicitly ignore an exported field.
+- If the env var is set, its value wins over `default=...`.
+- An empty string still counts as "set". Defaults only apply when the variable is unset.
+- Nested structs are traversed automatically. Tagged fields inside them are loaded the same way as top-level fields.
+- Errors are aggregated and returned together so you can fix all invalid or missing variables in one pass.
+
+Supported field types:
+
+- `string`
+- `bool`
+- signed integers and unsigned integers
+- `float32` and `float64`
+- `time.Duration`
+- `time.Time`
+- `url.URL` and `*url.URL`
+- `[]string`
+- `map[string]string`
+
+### `required`
+
+Marks a field as mandatory. If the environment variable is unset and no default is provided, `Load` reports an error.
+
+```go
+type config struct {
+	BaseURL *url.URL `env:"BASE_URL,required"`
+}
+```
+
+Notes:
+
+- `required` only checks for "unset", not "empty".
+- If both `required` and `default=...` are present, the default satisfies the requirement when the env var is unset.
+
+### `default=...`
+
+Provides a fallback value used only when the environment variable is unset.
+
+```go
+type config struct {
+	Port    int           `env:"PORT,default=8080"`
+	Timeout time.Duration `env:"TIMEOUT,default=5s"`
+	Mode    string        `env:"MODE,default=dev"`
+}
+```
+
+Notes:
+
+- The default string is parsed with the same rules as a real environment value.
+- Invalid defaults fail during `Load` just like invalid env values.
+- Defaults for slices and maps use the same separators as parsed env values.
+
+### `sep=...`
+
+Overrides the separator for `[]string` fields. The default separator is `,`.
+
+```go
+type config struct {
+	Hosts []string `env:"HOSTS,sep=|"`
+}
+```
+
+Examples:
+
+- `HOSTS=api|worker|admin` with `sep=|` becomes `[]string{"api", "worker", "admin"}`
+- `HOSTS=api, worker` without `sep=...` becomes `[]string{"api", "worker"}`
+
+Notes:
+
+- Whitespace around entries is trimmed.
+- Empty entries are skipped.
+
+### `entrysep=...` and `kvsep=...`
+
+Override separators for `map[string]string` fields. Defaults are `entrysep=,` and `kvsep==`.
+
+```go
+type config struct {
+	Labels map[string]string `env:"LABELS,entrysep=;,kvsep=:"`
+}
+```
+
+Examples:
+
+- `LABELS=team=platform,service=envchain` becomes `map[string]string{"team": "platform", "service": "envchain"}`
+- `LABELS=team:platform;service:envchain` with `entrysep=;` and `kvsep=:` parses the same data
+
+Notes:
+
+- Keys are trimmed and must not be empty.
+- Values are trimmed.
+- Invalid entries such as `broken` or `=value` produce an error.
+
+### `layout=...`
+
+Defines the parse layout for `time.Time` fields. This option is required for every `time.Time` field.
+
+```go
+type config struct {
+	StartedAt time.Time `env:"STARTED_AT,layout=2006-01-02"`
+}
+```
+
+Notes:
+
+- Layouts use Go's `time.Parse` reference time format.
+- If a `time.Time` field is tagged without `layout=...`, `Load` returns an error.
+
+### `oneof=...`
+
+Constrains `string` fields to an allowed set of values.
+
+```go
+type config struct {
+	Mode string `env:"MODE,default=dev,oneof=dev|staging|prod"`
+}
+```
+
+Notes:
+
+- `oneof` currently applies to `string` fields.
+- Comparison is exact and case-sensitive.
+- Defaults are also validated against the allowed set.
+
+### `format=bytes`
+
+Enables byte-size parsing for signed integer fields.
+
+```go
+type config struct {
+	MaxBytes int64 `env:"MAX_BYTES,default=256MiB,format=bytes"`
+}
+```
+
+Examples:
+
+- `42` => `42`
+- `2KB` => `2048`
+- `4MiB` => `4194304`
+
+Supported units:
+
+- `B`
+- `K`, `KB`, `KiB`
+- `M`, `MB`, `MiB`
+- `G`, `GB`, `GiB`
+- `T`, `TB`, `TiB`
+
+Notes:
+
+- Units are case-insensitive.
+- Negative values are rejected.
+- Overflow for the target integer type returns an error.
+
+### Full Example
+
+```go
+type appConfig struct {
+	Port      int               `env:"PORT,default=8080"`
+	Debug     bool              `env:"DEBUG,default=false"`
+	Timeout   time.Duration     `env:"TIMEOUT,default=5s"`
+	BaseURL   *url.URL          `env:"BASE_URL,required"`
+	Aliases   []string          `env:"ALIASES,default=api,worker"`
+	Labels    map[string]string `env:"LABELS,default=team=platform,service=envchain"`
+	StartedAt time.Time         `env:"STARTED_AT,layout=2006-01-02"`
+	Mode      string            `env:"MODE,default=dev,oneof=dev|prod"`
+	MaxBytes  int64             `env:"MAX_BYTES,default=256MiB,format=bytes"`
 }
 ```
 
